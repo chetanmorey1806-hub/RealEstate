@@ -32,7 +32,7 @@ export default function Blog() {
             title="Six things worth reading before you sign anything"
           />
 
-          <div className="pill-row" style={{ justifyContent: 'center', marginBottom: 40 }}>
+          <div className="pill-row scroll-sm" style={{ justifyContent: 'center', marginBottom: 34 }}>
             {categories.map((c) => (
               <button
                 key={c}
@@ -45,7 +45,7 @@ export default function Blog() {
             ))}
           </div>
 
-          <div className="grid grid-3">
+          <div className="grid grid-3 rail">
             {list.map((p, i) => (
               <article
                 key={p.id}

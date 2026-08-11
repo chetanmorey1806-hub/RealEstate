@@ -31,6 +31,7 @@ import {
   formatNumber,
   fullAddress,
   mapEmbed,
+  shortAddress,
   shortINR,
 } from '../utils/format'
 
@@ -367,8 +368,8 @@ export default function PropertyDetail() {
       {similar.length > 0 && (
         <section className="section section--tint">
           <div className="container">
-            <h2 style={{ marginBottom: 30 }}>Similar properties</h2>
-            <div className="grid grid-3">
+            <h2 style={{ marginBottom: 24 }}>Similar properties</h2>
+            <div className="grid grid-3 rail">
               {similar.map((p) => (
                 <PropertyCard key={p.id} property={p} />
               ))}
@@ -376,6 +377,30 @@ export default function PropertyDetail() {
           </div>
         </section>
       )}
+
+      {/* Phone-only sticky bar so the price and the two actions that matter
+          are always one thumb away. */}
+      <div className="action-bar">
+        <span className="price">
+          <b>
+            {shortINR(property.price)}
+            {property.priceUnit ? `/${property.priceUnit}` : ''}
+          </b>
+          <span>{shortAddress(property.address)}</span>
+        </span>
+        <a
+          href={`https://wa.me/${agent?.phone.replace(/\D/g, '')}`}
+          target="_blank"
+          rel="noreferrer"
+          className="btn btn-outline btn-sm"
+          aria-label="WhatsApp the consultant"
+        >
+          <FaWhatsapp size={17} />
+        </a>
+        <a href={`tel:${agent?.phone.replace(/\s/g, '')}`} className="btn btn-primary btn-sm">
+          <FiPhone size={15} /> Call agent
+        </a>
+      </div>
     </>
   )
 }

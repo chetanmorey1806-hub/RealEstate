@@ -30,7 +30,7 @@ export default function Projects() {
             text="Filter by construction stage to see what fits your timeline."
           />
 
-          <div className="pill-row" style={{ justifyContent: 'center', marginBottom: 40 }}>
+          <div className="pill-row scroll-sm" style={{ justifyContent: 'center', marginBottom: 34 }}>
             {stages.map((s) => (
               <button
                 key={s}
@@ -43,7 +43,7 @@ export default function Projects() {
             ))}
           </div>
 
-          <div className="grid grid-3">
+          <div className="grid grid-3 rail">
             {list.map((p, i) => (
               <div className="reveal" key={p.id} style={{ transitionDelay: `${(i % 3) * 80}ms` }}>
                 <ProjectCard project={p} />

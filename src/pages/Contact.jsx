@@ -78,16 +78,22 @@ export default function Contact() {
                 lines: [company.hours, 'Sunday visits by appointment'],
               },
             ].map((c, i) => (
-              <div key={c.title} className="svc-card reveal" style={{ transitionDelay: `${i * 70}ms` }}>
+              <div
+                key={c.title}
+                className="svc-card compact-sm reveal"
+                style={{ transitionDelay: `${i * 70}ms` }}
+              >
                 <span className="svc-icon">
                   <c.icon />
                 </span>
-                <h3>{c.title}</h3>
-                {c.lines.map((l) => (
-                  <p key={l} style={{ marginBottom: 2, fontSize: '0.92rem' }}>
-                    {c.href ? <a href={c.href}>{l}</a> : l}
-                  </p>
-                ))}
+                <div>
+                  <h3>{c.title}</h3>
+                  {c.lines.map((l) => (
+                    <p key={l} style={{ marginBottom: 2, fontSize: 'var(--fs-sm)' }}>
+                      {c.href ? <a href={c.href}>{l}</a> : l}
+                    </p>
+                  ))}
+                </div>
               </div>
             ))}
           </div>

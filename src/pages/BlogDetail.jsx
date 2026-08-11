@@ -100,7 +100,7 @@ export default function BlogDetail() {
       <section className="section section--tint">
         <div className="container">
           <h2 style={{ marginBottom: 28 }}>Keep reading</h2>
-          <div className="grid grid-3">
+          <div className="grid grid-3 rail">
             {more.map((p) => (
               <article key={p.id} className="post-card">
                 <div className="post-media">

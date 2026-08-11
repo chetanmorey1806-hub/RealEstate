@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
+import MobileTabBar from './components/MobileTabBar'
 import { BackToTop, ScrollToTop } from './components/common'
 import Home from './pages/Home'
 import Properties from './pages/Properties'
@@ -17,9 +18,8 @@ import Contact from './pages/Contact'
 import NotFound from './pages/NotFound'
 
 export default function App() {
-  const [theme, setTheme] = useState(
-    () => localStorage.getItem('estatica-theme') || 'light',
-  )
+  const [theme, setTheme] = useState(() => localStorage.getItem('estatica-theme') || 'light')
+  const location = useLocation()
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -31,8 +31,9 @@ export default function App() {
       <ScrollToTop />
       <Navbar theme={theme} onToggleTheme={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))} />
 
-      <main>
-        <Routes>
+      {/* Keying on the path replays the entrance animation on every route. */}
+      <main className="page-enter" key={location.pathname}>
+        <Routes location={location}>
           <Route path="/" element={<Home />} />
           <Route path="/properties" element={<Properties />} />
           <Route path="/properties/:slug" element={<PropertyDetail />} />
@@ -50,6 +51,7 @@ export default function App() {
 
       <Footer />
       <BackToTop />
+      <MobileTabBar />
     </>
   )
 }

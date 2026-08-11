@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { FiFilter, FiGrid, FiList, FiRotateCcw, FiSearch } from 'react-icons/fi'
+import { FiCheck, FiFilter, FiGrid, FiList, FiRotateCcw, FiSearch, FiX } from 'react-icons/fi'
 import PropertyCard from '../components/PropertyCard'
 import { CtaBand, PageHero } from '../components/common'
 import { cities, properties, propertyTypes } from '../data/properties'
 import { shortINR } from '../utils/format'
 import useReveal from '../hooks/useReveal'
+import useBodyLock from '../hooks/useBodyLock'
 
 const PER_PAGE = 6
 const MAX_BUDGET = 70000000
@@ -35,6 +36,18 @@ export default function Properties() {
   const [sort, setSort] = useState('newest')
   const [view, setView] = useState('grid')
   const [page, setPage] = useState(1)
+  const [sheetOpen, setSheetOpen] = useState(false)
+
+  const activeCount =
+    (q ? 1 : 0) +
+    (city ? 1 : 0) +
+    (type ? 1 : 0) +
+    (status ? 1 : 0) +
+    (beds ? 1 : 0) +
+    (maxPrice < MAX_BUDGET ? 1 : 0)
+
+  // The sheet is a modal on phones, so the page behind it must not scroll.
+  useBodyLock(sheetOpen)
 
   // Keep the address bar in step with the filters so results stay shareable.
   useEffect(() => {
@@ -113,9 +126,24 @@ export default function Properties() {
 
       <section className="section">
         <div className="container listing-layout">
-          <aside className="filters">
+          <div
+            className={`filters-backdrop ${sheetOpen ? 'show' : ''}`}
+            onClick={() => setSheetOpen(false)}
+            role="presentation"
+          />
+
+          <aside className={`filters ${sheetOpen ? 'open' : ''}`}>
             <h4>
               <FiFilter size={16} /> Filter results
+              <button
+                type="button"
+                className="icon-btn sheet-trigger"
+                style={{ marginLeft: 'auto', width: 34, height: 34 }}
+                onClick={() => setSheetOpen(false)}
+                aria-label="Close filters"
+              >
+                <FiX size={16} />
+              </button>
             </h4>
 
             <div className="filter-group">
@@ -212,6 +240,14 @@ export default function Properties() {
             <button type="button" className="btn btn-outline btn-block" onClick={reset}>
               <FiRotateCcw size={15} /> Reset filters
             </button>
+
+            <button
+              type="button"
+              className="btn btn-primary btn-block sheet-trigger"
+              onClick={() => setSheetOpen(false)}
+            >
+              <FiCheck size={16} /> Show {results.length} properties
+            </button>
           </aside>
 
           <div>
@@ -220,6 +256,15 @@ export default function Properties() {
                 Showing <b>{current.length}</b> of <b>{results.length}</b> properties
               </span>
               <div className="toolbar-right">
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm sheet-trigger"
+                  onClick={() => setSheetOpen(true)}
+                >
+                  <FiFilter size={14} /> Filters
+                  {activeCount > 0 && <span className="badge">{activeCount}</span>}
+                </button>
+
                 <label htmlFor="sort" className="sr-only">
                   Sort by
                 </label>

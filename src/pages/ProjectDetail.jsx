@@ -215,7 +215,7 @@ export default function ProjectDetail() {
         <section className="section section--tint">
           <div className="container">
             <h2 style={{ marginBottom: 28 }}>Units available in {project.address.locality}</h2>
-            <div className="grid grid-3">
+            <div className="grid grid-3 rail">
               {unitsOnSale.slice(0, 3).map((p) => (
                 <PropertyCard key={p.id} property={p} />
               ))}
@@ -227,7 +227,7 @@ export default function ProjectDetail() {
       <section className="section">
         <div className="container">
           <h2 style={{ marginBottom: 28 }}>Other projects</h2>
-          <div className="grid grid-3">
+          <div className="grid grid-3 rail">
             {related.map((p) => (
               <Link
                 key={p.id}

@@ -1,11 +1,11 @@
 /* ------------------------------------------------------------------
-   Design tokens, reset, typography, layout primitives and utilities
+   Design tokens, reset, fluid typography, layout primitives, motion
 ------------------------------------------------------------------ */
 
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,400..700,0..100,0..1;1,9..144,400..700,0..100,0..1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* palette */
+  /* ---------------------------- palette --------------------------- */
   --ink: #0e1a2b;
   --ink-2: #1c2b40;
   --body: #4a5a6e;
@@ -23,24 +23,45 @@
   --danger: #c0483c;
   --ok: #2f8f5b;
 
-  /* effects */
+  /* ---------------------------- effects --------------------------- */
   --shadow-sm: 0 1px 2px rgba(14, 26, 43, 0.06), 0 2px 6px rgba(14, 26, 43, 0.05);
   --shadow-md: 0 6px 18px rgba(14, 26, 43, 0.08), 0 2px 6px rgba(14, 26, 43, 0.04);
   --shadow-lg: 0 18px 44px rgba(14, 26, 43, 0.14);
-  --r-sm: 8px;
-  --r-md: 14px;
-  --r-lg: 22px;
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 24px;
   --r-full: 999px;
 
-  /* rhythm */
+  /* ---------------------------- rhythm ---------------------------- */
   --container: 1220px;
-  --gutter: 24px;
-  --section-y: clamp(56px, 7vw, 104px);
+  --gutter: clamp(16px, 4.4vw, 24px);
+  --section-y: clamp(46px, 7vw, 104px);
+  --card-pad: clamp(18px, 4.6vw, 26px);
+  --tabbar-h: 0px;
+  --nav-h: 76px;
+
+  /* -------------------------- typography -------------------------- */
+  /* Fluid scale: the min lands at 360px wide, the max at ~1440px. */
+  --fs-2xs: clamp(0.66rem, 0.64rem + 0.08vw, 0.72rem);
+  --fs-xs: clamp(0.72rem, 0.69rem + 0.13vw, 0.79rem);
+  --fs-sm: clamp(0.8rem, 0.77rem + 0.15vw, 0.88rem);
+  --fs-base: clamp(0.925rem, 0.885rem + 0.18vw, 1.02rem);
+  --fs-md: clamp(1rem, 0.94rem + 0.26vw, 1.14rem);
+  --fs-lg: clamp(1.1rem, 1rem + 0.44vw, 1.36rem);
+  --fs-xl: clamp(1.28rem, 1.1rem + 0.8vw, 1.78rem);
+  --fs-2xl: clamp(1.5rem, 1.19rem + 1.38vw, 2.5rem);
+  --fs-3xl: clamp(1.82rem, 1.3rem + 2.3vw, 3.4rem);
+  --fs-4xl: clamp(2.1rem, 1.32rem + 3.5vw, 4.2rem);
+
+  --lh-tight: 1.08;
+  --lh-snug: 1.22;
+  --lh-body: 1.62;
 
   --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
 
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
 }
 
 [data-theme='dark'] {
@@ -63,6 +84,16 @@
   --shadow-lg: 0 22px 50px rgba(0, 0, 0, 0.55);
 }
 
+/* The app-style tab bar only exists on small screens; reserving the space
+   here keeps every page's bottom padding correct without per-page rules. */
+@media (max-width: 860px) {
+  :root { --tabbar-h: 68px; }
+}
+
+@media (max-width: 620px) {
+  :root { --nav-h: 62px; }
+}
+
 *,
 *::before,
 *::after {
@@ -72,17 +103,20 @@
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  /* `clip` (not `hidden`) so the parked-off-screen drawer never widens the
+     page, while vertical scrolling and position:sticky keep working. */
+  overflow-x: clip;
 }
 
 body {
   margin: 0;
   font-family: var(--font-body);
-  font-size: 16px;
-  line-height: 1.65;
+  font-size: var(--fs-base);
+  line-height: var(--lh-body);
   color: var(--body);
   background: var(--surface);
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  padding-bottom: var(--tabbar-h);
 }
 
 img {
@@ -93,6 +127,11 @@ img {
 a {
   color: inherit;
   text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
 }
 
 button,
@@ -103,6 +142,8 @@ textarea {
   color: inherit;
 }
 
+/* ----------------------------- headings --------------------------- */
+
 h1,
 h2,
 h3,
@@ -110,16 +151,44 @@ h4,
 h5 {
   font-family: var(--font-display);
   color: var(--ink);
-  line-height: 1.15;
-  letter-spacing: -0.015em;
   margin: 0 0 0.5em;
   font-weight: 600;
+  /* WONK swaps in the alternate italic-flavoured glyphs; SOFT rounds the
+     terminals. Together they give the display face its own voice. */
+  font-variation-settings: 'SOFT' 24, 'WONK' 1;
+  text-wrap: balance;
+  overflow-wrap: break-word;
 }
 
-h1 { font-size: clamp(2.1rem, 4.6vw, 3.6rem); }
-h2 { font-size: clamp(1.7rem, 3.2vw, 2.6rem); }
-h3 { font-size: clamp(1.2rem, 2vw, 1.5rem); }
-h4 { font-size: 1.1rem; }
+h1 {
+  font-size: var(--fs-3xl);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.028em;
+}
+
+h2 {
+  font-size: var(--fs-2xl);
+  line-height: var(--lh-snug);
+  letter-spacing: -0.022em;
+}
+
+h3 {
+  font-size: var(--fs-lg);
+  line-height: 1.28;
+  letter-spacing: -0.015em;
+}
+
+h4 {
+  font-size: var(--fs-md);
+  line-height: 1.32;
+  letter-spacing: -0.01em;
+}
+
+.display {
+  font-size: var(--fs-4xl);
+  line-height: 0.98;
+  letter-spacing: -0.038em;
+}
 
 p { margin: 0 0 1rem; }
 
@@ -136,7 +205,7 @@ ul { margin: 0; padding: 0; list-style: none; }
   border-radius: 4px;
 }
 
-/* ---------------------------- layout ---------------------------- */
+/* ------------------------------ layout ---------------------------- */
 
 .container {
   width: 100%;
@@ -149,17 +218,12 @@ ul { margin: 0; padding: 0; list-style: none; }
   padding-block: var(--section-y);
 }
 
-.section--tint {
-  background: var(--surface-2);
-}
-
-.section--ink {
-  background: var(--ink);
-}
+.section--tint { background: var(--surface-2); }
+.section--ink { background: var(--ink); }
 
 .grid {
   display: grid;
-  gap: 26px;
+  gap: clamp(16px, 3vw, 26px);
 }
 
 .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -172,33 +236,85 @@ ul { margin: 0; padding: 0; list-style: none; }
 
 @media (max-width: 640px) {
   .grid-2, .grid-3, .grid-4 { grid-template-columns: minmax(0, 1fr); }
+  /* Two-up stays two-up for compact tiles so the page doesn't run forever. */
+  .grid-4.keep-2, .grid-2.keep-2, .grid-3.keep-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
-/* --------------------------- headings --------------------------- */
+/* ------------------- mobile snap rail (carousel) ------------------ */
+/* Turns any card grid into a swipeable rail on phones — far less
+   scrolling than a tall single column, and it feels native. */
+
+@media (max-width: 720px) {
+  .grid.rail {
+    display: flex;
+    grid-template-columns: none;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--gutter);
+    margin-inline: calc(var(--gutter) * -1);
+    padding-inline: var(--gutter);
+    padding-bottom: 6px;
+    gap: 14px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .grid.rail::-webkit-scrollbar { display: none; }
+
+  .grid.rail > * {
+    flex: 0 0 min(78%, 320px);
+    scroll-snap-align: start;
+  }
+
+  .grid.rail.rail-wide > * { flex: 0 0 min(88%, 400px); }
+}
+
+.rail-hint {
+  display: none;
+  align-items: center;
+  gap: 7px;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 14px;
+}
+
+@media (max-width: 720px) {
+  .rail-hint { display: flex; }
+  .rail-hint svg { animation: nudge 1.8s var(--ease) infinite; }
+}
+
+/* ----------------------------- headings --------------------------- */
 
 .eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.74rem;
-  font-weight: 700;
-  letter-spacing: 0.16em;
+  font-size: var(--fs-2xs);
+  font-weight: 800;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--brand);
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .eyebrow::before {
   content: '';
-  width: 26px;
+  width: 24px;
   height: 2px;
   background: var(--gold);
   border-radius: 2px;
+  transform-origin: left;
+  animation: growLine 0.8s var(--ease) both;
 }
 
 .section-head {
   max-width: 640px;
-  margin-bottom: 44px;
+  margin-bottom: clamp(28px, 4vw, 44px);
 }
 
 .section-head.center {
@@ -206,20 +322,18 @@ ul { margin: 0; padding: 0; list-style: none; }
   text-align: center;
 }
 
-.section-head.center .eyebrow {
-  justify-content: center;
-}
+.section-head.center .eyebrow { justify-content: center; }
 
 .section-head p {
   margin-bottom: 0;
-  font-size: 1.02rem;
+  font-size: var(--fs-md);
 }
 
 .section-head--row {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 28px;
+  gap: 24px;
   max-width: none;
 }
 
@@ -227,6 +341,7 @@ ul { margin: 0; padding: 0; list-style: none; }
   .section-head--row {
     flex-direction: column;
     align-items: flex-start;
+    gap: 18px;
   }
 }
 
@@ -238,23 +353,45 @@ ul { margin: 0; padding: 0; list-style: none; }
 
 .on-ink .eyebrow { color: var(--gold); }
 
-/* --------------------------- buttons ---------------------------- */
+/* ----------------------------- buttons ---------------------------- */
 
 .btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 13px 26px;
+  gap: 9px;
+  padding: 13px 24px;
   border: 1px solid transparent;
   border-radius: var(--r-full);
-  font-size: 0.92rem;
+  font-size: var(--fs-sm);
   font-weight: 700;
+  letter-spacing: 0.01em;
   cursor: pointer;
-  transition: all 0.25s var(--ease);
+  overflow: hidden;
+  transition: transform 0.25s var(--ease-spring), background 0.25s var(--ease),
+    color 0.25s var(--ease), border-color 0.25s var(--ease), box-shadow 0.25s var(--ease);
   white-space: nowrap;
   background: none;
+  min-height: 46px;
 }
+
+/* Light sweep across the button on hover. */
+.btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 55%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.28), transparent);
+  transform: skewX(-18deg);
+  transition: left 0.6s var(--ease);
+}
+
+.btn:hover::after { left: 130%; }
+
+.btn:active { transform: scale(0.96); }
 
 .btn svg { flex: none; }
 
@@ -303,40 +440,34 @@ ul { margin: 0; padding: 0; list-style: none; }
 }
 
 .btn-sm {
-  padding: 9px 18px;
-  font-size: 0.84rem;
+  padding: 9px 16px;
+  font-size: var(--fs-xs);
+  min-height: 38px;
 }
 
-.btn-block {
-  width: 100%;
-}
+.btn-block { width: 100%; }
 
 .link-arrow {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   font-weight: 700;
-  font-size: 0.92rem;
+  font-size: var(--fs-sm);
   color: var(--brand);
 }
 
-.link-arrow svg {
-  transition: transform 0.25s var(--ease);
-}
+.link-arrow svg { transition: transform 0.25s var(--ease); }
+.link-arrow:hover svg { transform: translateX(4px); }
 
-.link-arrow:hover svg {
-  transform: translateX(4px);
-}
-
-/* ---------------------------- chips ----------------------------- */
+/* ------------------------------ chips ----------------------------- */
 
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 13px;
+  padding: 6px 12px;
   border-radius: var(--r-full);
-  font-size: 0.74rem;
+  font-size: var(--fs-2xs);
   font-weight: 700;
   letter-spacing: 0.04em;
   background: var(--surface-3);
@@ -352,16 +483,16 @@ ul { margin: 0; padding: 0; list-style: none; }
   color: var(--body);
 }
 
-/* ---------------------------- forms ----------------------------- */
+/* ------------------------------ forms ----------------------------- */
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 6px;
 }
 
 .field label {
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
   font-weight: 700;
   color: var(--ink-2);
   letter-spacing: 0.02em;
@@ -371,18 +502,19 @@ ul { margin: 0; padding: 0; list-style: none; }
 .field select,
 .field textarea {
   width: 100%;
-  padding: 12px 15px;
+  padding: 12px 14px;
   border: 1px solid var(--line);
   border-radius: var(--r-sm);
   background: var(--surface);
   color: var(--ink);
-  font-size: 0.94rem;
+  /* 16px minimum stops iOS Safari zooming when a field is focused. */
+  font-size: max(16px, var(--fs-sm));
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .field textarea {
   resize: vertical;
-  min-height: 130px;
+  min-height: 120px;
 }
 
 .field input:focus,
@@ -394,7 +526,7 @@ ul { margin: 0; padding: 0; list-style: none; }
 }
 
 .field .error-text {
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
   color: var(--danger);
   font-weight: 600;
 }
@@ -403,9 +535,10 @@ ul { margin: 0; padding: 0; list-style: none; }
 .field.invalid select,
 .field.invalid textarea {
   border-color: var(--danger);
+  animation: shake 0.4s var(--ease);
 }
 
-/* --------------------------- helpers ---------------------------- */
+/* ----------------------------- helpers ---------------------------- */
 
 .text-center { text-align: center; }
 .mt-0 { margin-top: 0; }
@@ -419,6 +552,15 @@ ul { margin: 0; padding: 0; list-style: none; }
 .gap-16 { gap: 16px; }
 .gap-24 { gap: 24px; }
 
+/* `.hide-sm` deliberately sets no default display — `revert` would roll an
+   <a class="btn"> back to the UA's `inline` and break the button layout. */
+.only-sm { display: none; }
+
+@media (max-width: 640px) {
+  .hide-sm { display: none !important; }
+  .only-sm { display: block; }
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -431,7 +573,7 @@ ul { margin: 0; padding: 0; list-style: none; }
   border: 0;
 }
 
-/* --------------------------- animation -------------------------- */
+/* ----------------------------- motion ----------------------------- */
 
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(24px); }
@@ -453,15 +595,64 @@ ul { margin: 0; padding: 0; list-style: none; }
   to { background-position: -200% 0; }
 }
 
+@keyframes growLine {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes nudge {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(5px); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.9) translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Scroll reveal — three flavours so sections don't all move the same way. */
+
 .reveal {
   opacity: 0;
   transform: translateY(26px);
   transition: opacity 0.7s var(--ease), transform 0.7s var(--ease);
 }
 
+.reveal-left { transform: translateX(-30px); }
+.reveal-right { transform: translateX(30px); }
+.reveal-zoom { transform: scale(0.94); }
+
+/* Below the two-column breakpoint the sideways offset would push content
+   past the viewport edge, so those variants fall back to a vertical rise. */
+@media (max-width: 900px) {
+  .reveal-left,
+  .reveal-right { transform: translateY(26px); }
+}
+
 .reveal.in {
   opacity: 1;
   transform: none;
+}
+
+/* Page-level entrance, replayed on every route change. */
+.page-enter {
+  animation: fadeIn 0.45s var(--ease) both;
 }
 
 @media (prefers-reduced-motion: reduce) {

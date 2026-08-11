@@ -26,7 +26,7 @@ export default function Agents() {
             text="Between them they have closed more than eighteen hundred transactions across five cities."
           />
 
-          <div className="grid grid-3">
+          <div className="grid grid-3 rail rail-wide">
             {agents.map((a, i) => (
               <article
                 key={a.id}

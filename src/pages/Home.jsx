@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom'
-import { FiArrowRight, FiCheck, FiPhone } from 'react-icons/fi'
+import { FiArrowRight, FiCheck, FiChevronsRight, FiPhone } from 'react-icons/fi'
 import HeroSlider from '../components/HeroSlider'
 import SearchPanel from '../components/SearchPanel'
 import PropertyCard from '../components/PropertyCard'
 import ProjectCard from '../components/ProjectCard'
 import TestimonialSlider from '../components/TestimonialSlider'
 import SmartImage from '../components/SmartImage'
+import Marquee from '../components/Marquee'
 import { CtaBand, Counter, FaqList, SectionHead } from '../components/common'
 import { processIcons, serviceIcons, whyIcons } from '../components/icons'
 import { featuredProperties } from '../data/properties'
@@ -13,6 +14,12 @@ import { projects } from '../data/projects'
 import { localities, processSteps, services, whyUs } from '../data/content'
 import { stats } from '../data/site'
 import useReveal from '../hooks/useReveal'
+
+const RailHint = () => (
+  <p className="rail-hint">
+    Swipe for more <FiChevronsRight size={14} />
+  </p>
+)
 
 export default function Home() {
   useReveal([])
@@ -36,29 +43,33 @@ export default function Home() {
               const Icon = serviceIcons[s.icon]
               return (
                 <div
-                  className="svc-card reveal"
+                  className="svc-card compact-sm reveal"
                   key={s.id}
                   style={{ transitionDelay: `${i * 70}ms` }}
                 >
                   <span className="svc-icon">
                     <Icon />
                   </span>
-                  <h3>{s.title}</h3>
-                  <p>{s.short}</p>
-                  <Link to={`/services#${s.slug}`} className="link-arrow" style={{ marginTop: 16 }}>
-                    Read more <FiArrowRight size={15} />
-                  </Link>
+                  <div>
+                    <h3>{s.title}</h3>
+                    <p>{s.short}</p>
+                    <Link to={`/services#${s.slug}`} className="link-arrow" style={{ marginTop: 12 }}>
+                      Read more <FiArrowRight size={15} />
+                    </Link>
+                  </div>
                 </div>
               )
             })}
           </div>
-          <div className="text-center" style={{ marginTop: 40 }}>
+          <div className="text-center" style={{ marginTop: 34 }}>
             <Link to="/services" className="btn btn-outline">
               All eight services <FiArrowRight size={16} />
             </Link>
           </div>
         </div>
       </section>
+
+      <Marquee />
 
       {/* --------------------------- featured homes ------------------------ */}
       <section className="section section--tint">
@@ -68,17 +79,23 @@ export default function Home() {
             title="Featured properties"
             text="Every listing below has been physically inspected by our team, with title and RERA status verified before it went live."
             action={
-              <Link to="/properties" className="btn btn-outline">
+              <Link to="/properties" className="btn btn-outline hide-sm">
                 View all listings <FiArrowRight size={16} />
               </Link>
             }
           />
-          <div className="grid grid-3">
+          <div className="grid grid-3 rail">
             {featuredProperties.slice(0, 6).map((p, i) => (
               <div className="reveal" key={p.id} style={{ transitionDelay: `${(i % 3) * 80}ms` }}>
                 <PropertyCard property={p} />
               </div>
             ))}
+          </div>
+          <RailHint />
+          <div className="only-sm" style={{ marginTop: 22 }}>
+            <Link to="/properties" className="btn btn-outline btn-block">
+              View all listings <FiArrowRight size={16} />
+            </Link>
           </div>
         </div>
       </section>
@@ -87,7 +104,7 @@ export default function Home() {
       <section className="section">
         <div className="container">
           <div className="about-split">
-            <div style={{ position: 'relative' }}>
+            <div style={{ position: 'relative' }} className="reveal reveal-zoom">
               <div className="about-collage">
                 <SmartImage
                   src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80"
@@ -108,7 +125,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div>
+            <div className="reveal reveal-right">
               <span className="eyebrow">Why Estatica</span>
               <h2>We would rather lose a deal than sell you the wrong home</h2>
               <p>
@@ -117,24 +134,24 @@ export default function Home() {
                 flat you loved is overpriced by eleven percent.
               </p>
 
-              <div className="grid grid-2" style={{ gap: 20, marginTop: 28 }}>
+              <div className="grid grid-2" style={{ gap: 18, marginTop: 24 }}>
                 {whyUs.map((w) => {
                   const Icon = whyIcons[w.icon]
                   return (
-                    <div key={w.title} className="row gap-16" style={{ alignItems: 'flex-start' }}>
+                    <div key={w.title} className="row gap-12" style={{ alignItems: 'flex-start' }}>
                       <span className="svc-icon" style={{ marginBottom: 0, flex: 'none' }}>
                         <Icon />
                       </span>
                       <div>
-                        <h4 style={{ marginBottom: 4 }}>{w.title}</h4>
-                        <p style={{ fontSize: '0.9rem', marginBottom: 0 }}>{w.text}</p>
+                        <h4 style={{ marginBottom: 3 }}>{w.title}</h4>
+                        <p style={{ fontSize: 'var(--fs-sm)', marginBottom: 0 }}>{w.text}</p>
                       </div>
                     </div>
                   )
                 })}
               </div>
 
-              <div className="row wrap gap-12" style={{ marginTop: 34 }}>
+              <div className="row wrap gap-12" style={{ marginTop: 30 }}>
                 <Link to="/about" className="btn btn-primary">
                   About the firm <FiArrowRight size={16} />
                 </Link>
@@ -148,9 +165,9 @@ export default function Home() {
       </section>
 
       {/* ------------------------------ stats ------------------------------ */}
-      <section className="section section--ink on-ink" style={{ paddingBlock: 'clamp(40px, 5vw, 68px)' }}>
+      <section className="section section--ink on-ink" style={{ paddingBlock: 'clamp(32px, 5vw, 68px)' }}>
         <div className="container">
-          <div className="grid grid-4" style={{ gap: 0 }}>
+          <div className="grid grid-4 keep-2" style={{ gap: 0 }}>
             {stats.map((s, i) => (
               <div key={s.label} className={`stat ${i < stats.length - 1 ? 'stat-divider' : ''}`}>
                 <Counter to={s.value} suffix={s.suffix} />
@@ -169,17 +186,23 @@ export default function Home() {
             title="Projects we market exclusively"
             text="From a 23-storey tower in Baner to twenty-four valley villas on the Lonavala ridge — with live construction status on each."
             action={
-              <Link to="/projects" className="btn btn-outline">
+              <Link to="/projects" className="btn btn-outline hide-sm">
                 All projects <FiArrowRight size={16} />
               </Link>
             }
           />
-          <div className="grid grid-3">
+          <div className="grid grid-3 rail">
             {projects.slice(0, 3).map((p, i) => (
               <div className="reveal" key={p.id} style={{ transitionDelay: `${i * 80}ms` }}>
                 <ProjectCard project={p} />
               </div>
             ))}
+          </div>
+          <RailHint />
+          <div className="only-sm" style={{ marginTop: 22 }}>
+            <Link to="/projects" className="btn btn-outline btn-block">
+              All projects <FiArrowRight size={16} />
+            </Link>
           </div>
         </div>
       </section>
@@ -193,12 +216,15 @@ export default function Home() {
             title="Browse by locality"
             text="Six micro-markets we know street by street, with live inventory in each."
           />
-          <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+          <div
+            className="grid rail"
+            style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))' }}
+          >
             {localities.map((l, i) => (
               <Link
                 to={`/properties?city=${encodeURIComponent(l.city)}`}
                 key={l.name}
-                className="loc-card reveal"
+                className="loc-card reveal reveal-zoom"
                 style={{ transitionDelay: `${i * 60}ms` }}
               >
                 <SmartImage src={l.image} alt={l.name} />
@@ -209,6 +235,7 @@ export default function Home() {
               </Link>
             ))}
           </div>
+          <RailHint />
         </div>
       </section>
 
@@ -226,25 +253,22 @@ export default function Home() {
               return (
                 <div
                   key={s.title}
-                  className="svc-card reveal text-center"
+                  className="svc-card compact-sm reveal text-center"
                   style={{ transitionDelay: `${i * 80}ms` }}
                 >
-                  <span
-                    className="svc-icon"
-                    style={{ marginInline: 'auto', position: 'relative' }}
-                  >
+                  <span className="svc-icon" style={{ marginInline: 'auto', position: 'relative' }}>
                     <Icon />
                     <b
                       style={{
                         position: 'absolute',
                         top: -8,
                         right: -8,
-                        width: 26,
-                        height: 26,
+                        width: 24,
+                        height: 24,
                         borderRadius: '50%',
                         background: 'var(--gold)',
                         color: '#241d0d',
-                        fontSize: '0.78rem',
+                        fontSize: '0.72rem',
                         display: 'grid',
                         placeItems: 'center',
                       }}
@@ -252,8 +276,10 @@ export default function Home() {
                       {i + 1}
                     </b>
                   </span>
-                  <h3>{s.title}</h3>
-                  <p>{s.text}</p>
+                  <div>
+                    <h3>{s.title}</h3>
+                    <p>{s.text}</p>
+                  </div>
                 </div>
               )
             })}
@@ -277,14 +303,14 @@ export default function Home() {
       <section className="section">
         <div className="container">
           <div className="about-split" style={{ alignItems: 'start' }}>
-            <div>
+            <div className="reveal reveal-left">
               <span className="eyebrow">Questions</span>
               <h2>The things buyers ask us first</h2>
               <p>
                 If your question is not here, call the number below — you will reach a consultant,
                 not a call centre.
               </p>
-              <ul className="svc-points" style={{ marginTop: 22, fontSize: '0.95rem' }}>
+              <ul className="svc-points" style={{ marginTop: 20 }}>
                 <li>
                   <FiCheck size={16} /> No brokerage on primary sales
                 </li>
@@ -295,7 +321,7 @@ export default function Home() {
                   <FiCheck size={16} /> One consultant owns your file end to end
                 </li>
               </ul>
-              <Link to="/contact" className="btn btn-primary" style={{ marginTop: 26 }}>
+              <Link to="/contact" className="btn btn-primary" style={{ marginTop: 24 }}>
                 Ask us anything <FiArrowRight size={16} />
               </Link>
             </div>
