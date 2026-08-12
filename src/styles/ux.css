@@ -1,0 +1,371 @@
+/* ------------------------------------------------------------------
+   Skeletons, micro-interactions, transitions, scroll effects, a11y
+------------------------------------------------------------------ */
+
+/* ---------------------------- skeletons -------------------------- */
+
+.sk {
+  display: block;
+  background: linear-gradient(
+    100deg,
+    var(--surface-3) 30%,
+    var(--surface-2) 50%,
+    var(--surface-3) 70%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s linear infinite;
+  border-radius: 6px;
+}
+
+.sk-card {
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.sk-media {
+  aspect-ratio: 4 / 3;
+  border-radius: 0;
+}
+
+.sk-body {
+  padding: var(--card-pad);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sk-row { display: flex; gap: 14px; margin-top: 4px; }
+
+.sk-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px var(--card-pad);
+  border-top: 1px solid var(--line-soft);
+  background: var(--surface-2);
+}
+
+.sk-hero {
+  padding-block: clamp(44px, 9vw, 118px);
+  background: var(--ink);
+}
+
+.sk-hero .sk {
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0.08) 30%,
+    rgba(255, 255, 255, 0.14) 50%,
+    rgba(255, 255, 255, 0.08) 70%
+  );
+  background-size: 200% 100%;
+}
+
+.sk-stage {
+  aspect-ratio: 16 / 10;
+  border-radius: var(--r-md);
+}
+
+.sk-specs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin: 22px 0;
+}
+
+.sk-map {
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+
+.sk-fill { position: absolute; inset: 0; border-radius: 0; }
+
+.sk-map-note {
+  position: relative;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--muted);
+}
+
+/* Below-the-fold sections skip layout and paint until they are near the
+   viewport. contain-intrinsic-size keeps the scrollbar honest meanwhile. */
+.section:not(:first-of-type) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 640px;
+}
+
+/* ------------------------- micro-interactions -------------------- */
+
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.22;
+  pointer-events: none;
+  transform: scale(0);
+  animation: rippleOut 0.6s var(--ease) forwards;
+}
+
+@keyframes rippleOut {
+  to { transform: scale(1); opacity: 0; }
+}
+
+.btn,
+.pill,
+.tab-ico { position: relative; overflow: hidden; }
+
+/* heart burst */
+
+.fav-btn.burst::before,
+.fav-btn.burst::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--danger);
+  animation: heartRing 0.62s var(--ease) forwards;
+  pointer-events: none;
+}
+
+.fav-btn.burst::after { animation-delay: 0.12s; }
+
+@keyframes heartRing {
+  0% { transform: scale(0.7); opacity: 0.9; }
+  100% { transform: scale(2.1); opacity: 0; }
+}
+
+.fav-btn.on svg { animation: heartPop 0.42s var(--ease-spring); }
+
+@keyframes heartPop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.45); }
+  100% { transform: scale(1); }
+}
+
+/* card CTA reads as a button but is not a second tab stop */
+.p-card-cta {
+  padding: 8px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-full);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--surface);
+  transition: all 0.25s var(--ease);
+}
+
+.p-card:hover .p-card-cta {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+
+/* One tab stop per card: the title link covers the whole card. */
+.stretch-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.p-card { position: relative; }
+
+/* Controls that must stay clickable above the stretched link. */
+.p-card-badges,
+.p-card-price { position: absolute; z-index: 3; }
+
+/* ------------------------------ toasts --------------------------- */
+
+.toast-host {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--tabbar-h) + 18px);
+  transform: translateX(-50%);
+  z-index: 120;
+  display: grid;
+  gap: 8px;
+  width: min(420px, calc(100vw - 2 * var(--gutter)));
+  pointer-events: none;
+}
+
+.toast-host > div { display: grid; gap: 8px; }
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 13px 15px;
+  border-radius: var(--r-md);
+  background: var(--ink);
+  color: #fff;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  box-shadow: var(--shadow-lg);
+  pointer-events: auto;
+  animation: toastIn 0.4s var(--ease-spring) both;
+}
+
+.toast span { flex: 1; }
+
+.toast svg { flex: none; color: var(--gold); }
+
+.toast-success svg { color: #6ee7b7; }
+.toast-like svg { color: #fb7185; }
+.toast-error svg { color: #fca5a5; }
+
+.toast button {
+  flex: none;
+  border: 0;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.toast button:hover { background: rgba(255, 255, 255, 0.24); }
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+/* -------------------------- page transitions --------------------- */
+
+/* Browsers with the View Transitions API get a real cross-fade; the rest
+   keep the CSS entrance below. */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) {
+    animation: vtOut 0.22s var(--ease) both;
+  }
+
+  ::view-transition-new(root) {
+    animation: vtIn 0.34s var(--ease) both;
+  }
+}
+
+@keyframes vtOut {
+  to { opacity: 0; transform: translateY(-8px); }
+}
+
+@keyframes vtIn {
+  from { opacity: 0; transform: translateY(12px); }
+}
+
+.page-enter {
+  animation: pageIn 0.45s var(--ease) both;
+}
+
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* main is focused on navigation — never show a ring for that. */
+main:focus { outline: none; }
+
+/* -------------------------- scroll effects ----------------------- */
+
+[data-parallax] {
+  transform: translate3d(0, var(--py, 0px), 0);
+  will-change: transform;
+}
+
+.page-hero .simg,
+.hero-slide .simg { will-change: transform; }
+
+/* --------------------------- accessibility ----------------------- */
+
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 200;
+  padding: 12px 20px;
+  border-radius: var(--r-full);
+  background: var(--brand);
+  color: #fff;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-160%);
+  transition: transform 0.25s var(--ease);
+}
+
+.skip-link:focus-visible {
+  transform: none;
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+/* A single, consistent focus ring everywhere. */
+:focus-visible {
+  outline: 3px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.on-ink :focus-visible,
+.hero :focus-visible,
+.footer :focus-visible,
+.cta-band :focus-visible,
+.page-hero :focus-visible {
+  outline-color: var(--gold);
+}
+
+/* Every interactive control clears the 44px touch target on coarse
+   pointers, which is the WCAG 2.2 target-size guidance. */
+@media (pointer: coarse) {
+  .btn,
+  .pill,
+  .icon-btn,
+  .fav-btn,
+  .burger,
+  .view-toggle button,
+  .pagination button,
+  .media-tabs button,
+  .tabbar a,
+  .gallery-arrow,
+  .tour-controls button,
+  .share-row a,
+  .agent-social a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .check,
+  .switch,
+  .drawer-nav a,
+  .nearby-list li { min-height: 44px; }
+}
+
+/* Forced-colours (Windows high contrast) needs real borders, not shadows. */
+@media (forced-colors: active) {
+  .btn,
+  .pill,
+  .chip,
+  .p-card,
+  .toast { border: 1px solid CanvasText; }
+
+  .nav-progress,
+  .sk { forced-color-adjust: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk { animation: none; }
+  .ripple { display: none; }
+  .toast { animation: none; }
+  .page-enter { animation: none; }
+  [data-parallax] { transform: none; }
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation: none; }
+}

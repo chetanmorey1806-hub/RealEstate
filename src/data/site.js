@@ -62,6 +62,7 @@ export const offices = [
 export const navLinks = [
   { label: 'Home', to: '/' },
   { label: 'Properties', to: '/properties' },
+  { label: 'Map Search', to: '/map-search' },
   { label: 'Projects', to: '/projects' },
   { label: 'Services', to: '/services' },
   { label: 'Agents', to: '/agents' },

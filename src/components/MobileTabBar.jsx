@@ -18,7 +18,14 @@ export default function MobileTabBar() {
       {tabs.map((t) => {
         const active = t.end ? pathname === t.to : pathname.startsWith(t.to)
         return (
-          <NavLink key={t.to} to={t.to} end={t.end} className={active ? 'active' : ''}>
+          <NavLink
+            key={t.to}
+            to={t.to}
+            end={t.end}
+            viewTransition
+            aria-current={active ? 'page' : undefined}
+            className={active ? 'active' : ''}
+          >
             <span className="tab-ico">
               <t.icon size={19} />
             </span>

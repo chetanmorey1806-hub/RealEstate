@@ -385,12 +385,15 @@
   box-shadow: var(--shadow-lg);
   transform: translateX(102%);
   visibility: hidden;
-  transition: transform 0.45s var(--ease), visibility 0.45s;
+  /* visibility is held back until the slide-out ends; on the way in it
+     flips immediately, so the panel is focusable on the very next frame. */
+  transition: transform 0.45s var(--ease), visibility 0s linear 0.45s;
 }
 
 .drawer.show {
   transform: none;
   visibility: visible;
+  transition: transform 0.45s var(--ease), visibility 0s;
 }
 
 .drawer-head {
@@ -1888,8 +1891,11 @@
   margin-bottom: 9px;
 }
 
+/* Matches every text-like input, not just [type=text] — a `search`,
+   `number` or `date` field would otherwise fall back to the 14px default
+   and make iOS zoom on focus. */
 .filter-group select,
-.filter-group input[type='text'] {
+.filter-group input:not([type='range']):not([type='checkbox']):not([type='radio']) {
   width: 100%;
   padding: 11px 13px;
   border: 1px solid var(--line);
@@ -1964,6 +1970,21 @@ input[type='range'] {
 
 /* --------------------- filters as a bottom sheet ----------------- */
 
+/* Always fixed — as a static element it would occupy a grid cell and
+   collapse the layout it sits in. */
+.filters-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 94;
+  background: rgba(9, 16, 27, 0.5);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.35s, visibility 0.35s;
+}
+
+.filters-backdrop.show { opacity: 1; visibility: visible; }
+
 .sheet-trigger { display: none; }
 
 @media (max-width: 1024px) {
@@ -2004,12 +2025,13 @@ input[type='range'] {
     box-shadow: var(--shadow-lg);
     transform: translateY(101%);
     visibility: hidden;
-    transition: transform 0.42s var(--ease), visibility 0.42s;
+    transition: transform 0.42s var(--ease), visibility 0s linear 0.42s;
   }
 
   .filters.open {
     transform: none;
     visibility: visible;
+    transition: transform 0.42s var(--ease), visibility 0s;
   }
 
   /* The sheet is modal, so the tab bar drops out of the way beneath it. */
@@ -2028,19 +2050,6 @@ input[type='range'] {
     margin: 4px auto 10px;
     flex: none;
   }
-
-  .filters-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 94;
-    background: rgba(9, 16, 27, 0.5);
-    backdrop-filter: blur(3px);
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.35s, visibility 0.35s;
-  }
-
-  .filters-backdrop.show { opacity: 1; visibility: visible; }
 }
 
 /* ------------------------- back to top -------------------------- */

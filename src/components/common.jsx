@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { FiArrowRight, FiArrowUp, FiChevronRight, FiPlus } from 'react-icons/fi'
 import SmartImage from './SmartImage'
 import { faqs } from '../data/content'
+import useParallax from '../hooks/useParallax'
 
 /* ------------------------------- headings ------------------------------ */
 
@@ -23,9 +24,10 @@ export function SectionHead({ eyebrow, title, text, center = false, action, onIn
 /* ------------------------------ page hero ------------------------------ */
 
 export function PageHero({ title, text, image, crumbs = [] }) {
+  useParallax()
   return (
     <section className="page-hero">
-      <SmartImage src={image} alt="" />
+      <SmartImage src={image} alt="" priority sizes="100vw" data-parallax="34" />
       <div className="container">
         <nav className="crumbs" aria-label="Breadcrumb">
           <Link to="/">Home</Link>
@@ -153,14 +155,6 @@ export function FaqList({ items = faqs, limit }) {
 }
 
 /* ---------------------------- scroll helpers --------------------------- */
-
-export function ScrollToTop() {
-  const { pathname } = useLocation()
-  useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [pathname])
-  return null
-}
 
 export function BackToTop() {
   const [show, setShow] = useState(false)

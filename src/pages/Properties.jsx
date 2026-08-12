@@ -1,125 +1,102 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { FiCheck, FiFilter, FiGrid, FiList, FiRotateCcw, FiSearch, FiX } from 'react-icons/fi'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
+import {
+  FiBookmark,
+  FiFilter,
+  FiGrid,
+  FiHeart,
+  FiList,
+  FiMap,
+  FiSearch,
+  FiTrash2,
+  FiX,
+} from 'react-icons/fi'
 import PropertyCard from '../components/PropertyCard'
+import FilterPanel from '../components/FilterPanel'
 import { CtaBand, PageHero } from '../components/common'
-import { cities, properties, propertyTypes } from '../data/properties'
-import { shortINR } from '../utils/format'
+import {
+  countActive,
+  emptyFilters,
+  filtersToParams,
+  paramsToFilters,
+  searchProperties,
+  sortOptions,
+} from '../utils/search'
 import useReveal from '../hooks/useReveal'
 import useBodyLock from '../hooks/useBodyLock'
+import useSavedSearches from '../hooks/useSavedSearches'
+import useWishlist from '../hooks/useWishlist'
+import useFocusTrap from '../hooks/useFocusTrap'
+import { useToast } from '../components/toast-context'
 
 const PER_PAGE = 6
-const MAX_BUDGET = 70000000
-
-const bedOptions = ['1', '2', '3', '4', '5+']
 
 export default function Properties() {
   const [params, setParams] = useSearchParams()
 
-  const [q, setQ] = useState(params.get('q') || '')
-  const [city, setCity] = useState(params.get('city') || '')
-  const [type, setType] = useState(params.get('type') || '')
-  const [status, setStatus] = useState(params.get('status') || '')
-  const [beds, setBeds] = useState(params.get('beds') || '')
-  const [maxPrice, setMaxPrice] = useState(() => {
-    const budget = params.get('budget')
-    if (!budget) return MAX_BUDGET
-    const high = Number(budget.split('-')[1])
-    return Number.isFinite(high) ? Math.min(high, MAX_BUDGET) : MAX_BUDGET
-  })
-  const [minPrice, setMinPrice] = useState(() => {
-    const budget = params.get('budget')
-    if (!budget) return 0
-    const low = Number(budget.split('-')[0])
-    return Number.isFinite(low) ? low : 0
-  })
-  const [sort, setSort] = useState('newest')
+  const [filters, setFilters] = useState(() => paramsToFilters(params))
+  const [sort, setSort] = useState(() => params.get('sort') || 'relevance')
   const [view, setView] = useState('grid')
   const [page, setPage] = useState(1)
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [onlySaved, setOnlySaved] = useState(false)
 
-  const activeCount =
-    (q ? 1 : 0) +
-    (city ? 1 : 0) +
-    (type ? 1 : 0) +
-    (status ? 1 : 0) +
-    (beds ? 1 : 0) +
-    (maxPrice < MAX_BUDGET ? 1 : 0)
+  const saved = useSavedSearches()
+  const wishlist = useWishlist()
+  const { toast } = useToast()
 
-  // The sheet is a modal on phones, so the page behind it must not scroll.
   useBodyLock(sheetOpen)
+  const sheetRef = useFocusTrap(sheetOpen, { onEscape: () => setSheetOpen(false) })
 
-  // Keep the address bar in step with the filters so results stay shareable.
-  useEffect(() => {
-    const next = new URLSearchParams()
-    if (q) next.set('q', q)
-    if (city) next.set('city', city)
-    if (type) next.set('type', type)
-    if (status) next.set('status', status)
-    if (beds) next.set('beds', beds)
-    if (minPrice > 0 || maxPrice < MAX_BUDGET) next.set('budget', `${minPrice}-${maxPrice}`)
-    setParams(next, { replace: true })
+  const set = useCallback((key, value) => {
+    setFilters((f) => ({ ...f, [key]: value }))
     setPage(1)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, city, type, status, beds, minPrice, maxPrice])
+  }, [])
+
+  const reset = useCallback(() => {
+    setFilters(emptyFilters)
+    setPage(1)
+    toast('All filters cleared', { type: 'info' })
+  }, [toast])
+
+  // Mirror state into the URL so any result set is shareable and bookmarkable.
+  useEffect(() => {
+    setParams(filtersToParams(filters, sort), { replace: true })
+  }, [filters, sort, setParams])
 
   const results = useMemo(() => {
-    const needle = q.trim().toLowerCase()
+    const found = searchProperties(filters, sort)
+    return onlySaved ? found.filter((p) => wishlist.has(p.id)) : found
+  }, [filters, sort, onlySaved, wishlist])
 
-    const filtered = properties.filter((p) => {
-      if (city && p.address.city !== city) return false
-      if (type && p.type !== type) return false
-      if (status && p.status !== status) return false
-      if (beds) {
-        if (beds === '5+' ? p.beds < 5 : p.beds !== Number(beds)) return false
-      }
-      // Rentals are monthly figures, so the sale-price slider must not hide them.
-      if (!p.priceUnit && (p.price < minPrice || p.price > maxPrice)) return false
-      if (needle) {
-        const haystack = [
-          p.title,
-          p.type,
-          p.address.line,
-          p.address.locality,
-          p.address.city,
-          p.address.pin,
-          p.description,
-        ]
-          .join(' ')
-          .toLowerCase()
-        if (!haystack.includes(needle)) return false
-      }
-      return true
-    })
-
-    const sorted = [...filtered]
-    if (sort === 'price-asc') sorted.sort((a, b) => a.price - b.price)
-    if (sort === 'price-desc') sorted.sort((a, b) => b.price - a.price)
-    if (sort === 'area-desc') sorted.sort((a, b) => b.area - a.area)
-    if (sort === 'newest') sorted.sort((a, b) => new Date(b.postedOn) - new Date(a.postedOn))
-    return sorted
-  }, [q, city, type, status, beds, minPrice, maxPrice, sort])
-
+  const activeCount = countActive(filters)
   const pages = Math.max(1, Math.ceil(results.length / PER_PAGE))
-  const current = results.slice((page - 1) * PER_PAGE, page * PER_PAGE)
+  const currentPage = Math.min(page, pages)
+  const current = results.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE)
 
   useReveal([current.map((p) => p.id).join(','), view])
 
-  const reset = () => {
-    setQ('')
-    setCity('')
-    setType('')
-    setStatus('')
-    setBeds('')
-    setMinPrice(0)
-    setMaxPrice(MAX_BUDGET)
+  const handleSave = () => {
+    const label =
+      [filters.locality || filters.city, filters.type, filters.beds && `${filters.beds} BHK`]
+        .filter(Boolean)
+        .join(' · ') || 'All properties'
+    saved.save(label, filters, sort)
+    toast(`Search saved as “${label}”`, { type: 'success' })
+  }
+
+  const applySaved = (entry) => {
+    const p = new URLSearchParams(entry.query)
+    setFilters(paramsToFilters(p))
+    setSort(p.get('sort') || 'relevance')
+    setPage(1)
   }
 
   return (
     <>
       <PageHero
-        title="Properties for sale and rent"
-        text="Twelve verified listings across Pune, Mumbai, Bengaluru, Lonavala and Goa — apartments, villas, plots, offices and retail."
+        title="Find your property"
+        text="Twelve verified listings across five cities. Filter on twenty-plus criteria — location, budget, area, rooms, amenities, construction status, RERA and who is selling."
         crumbs={[{ label: 'Properties' }]}
         image="https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1800&q=80"
       />
@@ -132,129 +109,58 @@ export default function Properties() {
             role="presentation"
           />
 
-          <aside className={`filters ${sheetOpen ? 'open' : ''}`}>
-            <h4>
-              <FiFilter size={16} /> Filter results
-              <button
-                type="button"
-                className="icon-btn sheet-trigger"
-                style={{ marginLeft: 'auto', width: 34, height: 34 }}
-                onClick={() => setSheetOpen(false)}
-                aria-label="Close filters"
-              >
-                <FiX size={16} />
-              </button>
-            </h4>
+          <div>
+            <FilterPanel
+              panelRef={sheetRef}
+              filters={filters}
+              set={set}
+              reset={reset}
+              activeCount={activeCount}
+              resultCount={results.length}
+              onSave={handleSave}
+              onClose={() => setSheetOpen(false)}
+              isSheet={sheetOpen}
+            />
 
-            <div className="filter-group">
-              <label htmlFor="f-q">Keyword</label>
-              <input
-                id="f-q"
-                type="text"
-                placeholder="Locality, project, pincode…"
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-              />
-            </div>
-
-            <div className="filter-group">
-              <span className="filter-label">Listing type</span>
-              <div className="pill-row">
-                {['', 'For Sale', 'For Rent'].map((s) => (
-                  <button
-                    key={s || 'all'}
-                    type="button"
-                    className={`pill ${status === s ? 'on' : ''}`}
-                    onClick={() => setStatus(s)}
-                  >
-                    {s || 'All'}
-                  </button>
-                ))}
+            {saved.items.length > 0 && (
+              <div className="saved-box">
+                <h4>
+                  <FiBookmark size={15} /> Saved searches
+                </h4>
+                <ul>
+                  {saved.items.map((s) => (
+                    <li key={s.id}>
+                      <button type="button" onClick={() => applySaved(s)}>
+                        {s.name}
+                      </button>
+                      <button
+                        type="button"
+                        className="saved-del"
+                        onClick={() => saved.remove(s.id)}
+                        aria-label={`Delete saved search ${s.name}`}
+                      >
+                        <FiTrash2 size={13} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            </div>
-
-            <div className="filter-group">
-              <label htmlFor="f-city">City</label>
-              <select id="f-city" value={city} onChange={(e) => setCity(e.target.value)}>
-                <option value="">All cities</option>
-                {cities.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="filter-group">
-              <label htmlFor="f-type">Property type</label>
-              <select id="f-type" value={type} onChange={(e) => setType(e.target.value)}>
-                <option value="">All types</option>
-                {propertyTypes.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="filter-group">
-              <span className="filter-label">Bedrooms</span>
-              <div className="pill-row">
-                <button
-                  type="button"
-                  className={`pill ${beds === '' ? 'on' : ''}`}
-                  onClick={() => setBeds('')}
-                >
-                  Any
-                </button>
-                {bedOptions.map((b) => (
-                  <button
-                    key={b}
-                    type="button"
-                    className={`pill ${beds === b ? 'on' : ''}`}
-                    onClick={() => setBeds(b)}
-                  >
-                    {b}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="filter-group">
-              <label htmlFor="f-price">Maximum sale price</label>
-              <input
-                id="f-price"
-                type="range"
-                min={0}
-                max={MAX_BUDGET}
-                step={500000}
-                value={maxPrice}
-                onChange={(e) => setMaxPrice(Number(e.target.value))}
-              />
-              <div className="range-out">
-                <span>{shortINR(minPrice)}</span>
-                <span>{maxPrice >= MAX_BUDGET ? 'Any' : shortINR(maxPrice)}</span>
-              </div>
-            </div>
-
-            <button type="button" className="btn btn-outline btn-block" onClick={reset}>
-              <FiRotateCcw size={15} /> Reset filters
-            </button>
-
-            <button
-              type="button"
-              className="btn btn-primary btn-block sheet-trigger"
-              onClick={() => setSheetOpen(false)}
-            >
-              <FiCheck size={16} /> Show {results.length} properties
-            </button>
-          </aside>
+            )}
+          </div>
 
           <div>
+            {/* Announced politely so a screen reader hears the new count
+                without the focus jumping. */}
+            <p className="sr-only" role="status" aria-live="polite">
+              {results.length} properties match your filters
+            </p>
+
             <div className="listing-toolbar">
               <span className="count">
-                Showing <b>{current.length}</b> of <b>{results.length}</b> properties
+                <b>{results.length}</b> {results.length === 1 ? 'property' : 'properties'}
+                {activeCount > 0 && ` · ${activeCount} filter${activeCount > 1 ? 's' : ''}`}
               </span>
+
               <div className="toolbar-right">
                 <button
                   type="button"
@@ -265,15 +171,33 @@ export default function Properties() {
                   {activeCount > 0 && <span className="badge">{activeCount}</span>}
                 </button>
 
+                <Link
+                  to={`/map-search?${filtersToParams(filters, sort).toString()}`}
+                  className="btn btn-outline btn-sm"
+                >
+                  <FiMap size={14} /> Map
+                </Link>
+
+                <button
+                  type="button"
+                  className={`btn btn-sm ${onlySaved ? 'btn-primary' : 'btn-outline'}`}
+                  onClick={() => setOnlySaved((v) => !v)}
+                >
+                  <FiHeart size={14} fill={onlySaved ? 'currentColor' : 'none'} />
+                  {wishlist.count > 0 && <span className="badge">{wishlist.count}</span>}
+                </button>
+
                 <label htmlFor="sort" className="sr-only">
                   Sort by
                 </label>
                 <select id="sort" value={sort} onChange={(e) => setSort(e.target.value)}>
-                  <option value="newest">Newest first</option>
-                  <option value="price-asc">Price: low to high</option>
-                  <option value="price-desc">Price: high to low</option>
-                  <option value="area-desc">Largest area</option>
+                  {sortOptions.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
                 </select>
+
                 <div className="view-toggle">
                   <button
                     type="button"
@@ -295,13 +219,52 @@ export default function Properties() {
               </div>
             </div>
 
+            {activeCount > 0 && (
+              <div className="chip-row" role="group" aria-label="Active filters">
+                {Object.entries(filters).map(([key, value]) => {
+                  if (key === 'centre' || !value || (Array.isArray(value) && !value.length)) {
+                    return null
+                  }
+                  const labels = Array.isArray(value) ? value : [value === true ? key : value]
+                  return labels.map((label) => (
+                    <button
+                      key={`${key}-${label}`}
+                      type="button"
+                      className="chip chip-soft"
+                      onClick={() =>
+                        set(
+                          key,
+                          Array.isArray(value)
+                            ? value.filter((v) => v !== label)
+                            : emptyFilters[key],
+                        )
+                      }
+                    >
+                      {String(label)} <FiX size={12} />
+                    </button>
+                  ))
+                })}
+                <button type="button" className="chip chip-outline" onClick={reset}>
+                  Clear all
+                </button>
+              </div>
+            )}
+
             {current.length === 0 ? (
               <div className="empty-state">
-                <FiSearch size={38} />
-                <h3>No properties match those filters</h3>
-                <p>Try widening the budget or clearing the locality.</p>
-                <button type="button" className="btn btn-primary" onClick={reset}>
-                  Reset filters
+                <FiSearch size={36} />
+                <h3>{onlySaved ? 'Nothing shortlisted yet' : 'No properties match those filters'}</h3>
+                <p>
+                  {onlySaved
+                    ? 'Tap the heart on any listing to add it to your shortlist.'
+                    : 'Try widening the budget, clearing the locality, or dropping an amenity.'}
+                </p>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={onlySaved ? () => setOnlySaved(false) : reset}
+                >
+                  {onlySaved ? 'Back to all properties' : 'Clear all filters'}
                 </button>
               </div>
             ) : (
@@ -316,20 +279,28 @@ export default function Properties() {
 
             {pages > 1 && (
               <div className="pagination">
-                <button type="button" onClick={() => setPage(page - 1)} disabled={page === 1}>
+                <button
+                  type="button"
+                  onClick={() => setPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
                   Prev
                 </button>
                 {Array.from({ length: pages }, (_, n) => (
                   <button
                     key={n}
                     type="button"
-                    className={page === n + 1 ? 'active' : ''}
+                    className={currentPage === n + 1 ? 'active' : ''}
                     onClick={() => setPage(n + 1)}
                   >
                     {n + 1}
                   </button>
                 ))}
-                <button type="button" onClick={() => setPage(page + 1)} disabled={page === pages}>
+                <button
+                  type="button"
+                  onClick={() => setPage(currentPage + 1)}
+                  disabled={currentPage === pages}
+                >
                   Next
                 </button>
               </div>

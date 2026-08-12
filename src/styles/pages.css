@@ -140,7 +140,9 @@
 
 .spec-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  /* Fixed three-up so six specs form two even rows rather than
+     five-plus-an-orphan. */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1px;
   background: var(--line);
   border: 1px solid var(--line);

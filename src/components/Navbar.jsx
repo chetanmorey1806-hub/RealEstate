@@ -11,6 +11,8 @@ import {
 import { FaFacebookF, FaInstagram, FaLinkedinIn, FaWhatsapp, FaYoutube } from 'react-icons/fa6'
 import { company, navLinks } from '../data/site'
 import useBodyLock from '../hooks/useBodyLock'
+import useFocusTrap from '../hooks/useFocusTrap'
+import useRipple from '../hooks/useRipple'
 
 const socialIcon = {
   facebook: FaFacebookF,
@@ -45,12 +47,8 @@ export default function Navbar({ theme, onToggleTheme }) {
   useEffect(() => setOpen(false), [pathname])
 
   useBodyLock(open)
-
-  useEffect(() => {
-    const onKey = (e) => e.key === 'Escape' && setOpen(false)
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [])
+  useRipple()
+  const drawerRef = useFocusTrap(open, { onEscape: () => setOpen(false) })
 
   const Brand = (
     <>
@@ -106,9 +104,9 @@ export default function Navbar({ theme, onToggleTheme }) {
             {Brand}
           </Link>
 
-          <nav className="nav-links">
+          <nav className="nav-links" aria-label="Primary">
             {navLinks.map((l) => (
-              <NavLink key={l.to} to={l.to} end={l.to === '/'}>
+              <NavLink key={l.to} to={l.to} end={l.to === "/"} viewTransition>
                 <span>{l.label}</span>
               </NavLink>
             ))}
@@ -158,8 +156,15 @@ export default function Navbar({ theme, onToggleTheme }) {
           role="presentation"
         />
 
-        <aside className={`drawer ${open ? 'show' : ''}`} aria-hidden={!open}>
-        <nav className="drawer-nav">
+        <aside
+          ref={drawerRef}
+          className={`drawer ${open ? 'show' : ''}`}
+          role="dialog"
+          aria-modal={open || undefined}
+          aria-label="Site menu"
+          inert={open ? undefined : true}
+        >
+        <nav className="drawer-nav" aria-label="Menu">
           {navLinks.map((l, i) => (
             <NavLink
               key={l.to}
